@@ -8,7 +8,7 @@ public class HanoiSolution {
     private long timeTakenMs;
     private String algorithm;
 
-    public HanoiSolution() {}  // empty constructor
+    public HanoiSolution() {}
 
     public HanoiSolution(String playerName, int numDisks, int numPegs, String movesSequence, long timeTakenMs, String algorithm) {
         this.playerName = playerName;
@@ -19,7 +19,7 @@ public class HanoiSolution {
         this.algorithm = algorithm;
     }
 
-    // Getters
+    // getters & setters...
     public String getPlayerName() { return playerName; }
     public int getNumDisks() { return numDisks; }
     public int getNumPegs() { return numPegs; }
@@ -27,7 +27,6 @@ public class HanoiSolution {
     public long getTimeTakenMs() { return timeTakenMs; }
     public String getAlgorithm() { return algorithm; }
 
-    // Setters
     public void setPlayerName(String playerName) { this.playerName = playerName; }
     public void setNumDisks(int numDisks) { this.numDisks = numDisks; }
     public void setNumPegs(int numPegs) { this.numPegs = numPegs; }
