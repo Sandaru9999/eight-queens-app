@@ -1,13 +1,11 @@
 package com.eightqueens;
 
-import junit.framework.TestCase;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AppTest extends TestCase {
+public class AppTest {
 
-    public AppTest(String testName) {
-        super(testName);
-    }
-
+    @Test
     public void testApp() {
         assertTrue(true);
     }

@@ -13,6 +13,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <javafx.version>21.0.1</javafx.version>
+        <junit.jupiter.version>5.10.0</junit.jupiter.version>
     </properties>
 
     <dependencies>
@@ -44,11 +45,11 @@
             <version>8.1.0</version>
         </dependency>
 
-        <!-- JUnit 4 -->
+        <!-- JUnit 5 -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
