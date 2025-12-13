@@ -68,33 +68,44 @@ public class EightQueensScreen {
         });
 
         // ---------------- SUBMIT BUTTON WITH ALREADY RECOGNIZED CHECK ----------------
-        submitBtn.setOnAction(e -> {
-            String name = playerName.getText().trim();
-            if (name.isEmpty()) {
-                output.setText("Enter player name first!");
-                return;
-            }
-            if (!isFullSolution()) {
-                output.setText("You must place all 8 queens!");
-                return;
-            }
-            if (!isSolutionValid()) {
-                output.setText("Cannot submit — solution is incorrect.");
-                return;
-            }
+       submitBtn.setOnAction(e -> {
+    String name = playerName.getText().trim();
 
-            String solution = SolutionDAO.boardToString(board);
+    if (name.isEmpty()) {
+        output.setText("Enter player name first!");
+        return;
+    }
 
-            // Check if solution has already been recognized
-            if (SolutionDAO.isSolutionRecognized(solution)) {
-                output.setText("❌ This solution has already been recognized by another player. Try a different one!");
-                return;
-            }
+    if (!isFullSolution()) {
+        output.setText("You must place all 8 queens!");
+        return;
+    }
 
-            int timeTaken = 1234; // optional timer
-            SolutionDAO.savePlayerAndSolution(name, solution, timeTaken);
-            output.setText("✔ Correct solution saved for: " + name);
-        });
+    if (!isSolutionValid()) {
+        output.setText("Cannot submit — solution is incorrect.");
+        return;
+    }
+
+    String solution = SolutionDAO.boardToString(board);
+
+    if (SolutionDAO.isSolutionRecognized(solution)) {
+        output.setText("❌ This solution has already been recognized. Try another.");
+        return;
+    }
+
+    int timeTaken = 1234; // optional timer
+    SolutionDAO.savePlayerAndSolution(name, solution, timeTaken);
+
+    // 🟢 CHECK RESET EVENT
+    if (SolutionDAO.getRecognizedSolutionCount() == 0) {
+        output.setText(
+            "✔ Solution saved for " + name +
+            "\n🎉 All 92 solutions completed — system reset!"
+        );
+    } else {
+        output.setText("✔ Correct solution saved for: " + name);
+    }
+});
 
         viewAllBtn.setOnAction(e -> {
             StringBuilder sb = new StringBuilder();

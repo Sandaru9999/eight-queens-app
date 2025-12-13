@@ -348,7 +348,7 @@ public class HanoiUI {
     private void autoSolve4Naive() { runAlgorithmAndAnimate("4-Naive", () -> HanoiClassic4Pegs.solveNaive(numDisks,'A','D','B','C'),4); }
 
     private void runAlgorithmAndAnimate(String name, SolverRunnable solver, int pegCount) {
-        if (numDisks <= 0) { showAlert("Start a game first."); return; }
+        if (numDisks <= 0) { showAlert("Start game first."); return; }
         if (pegChoice.getValue() != pegCount) { showAlert("Change peg choice to " + pegCount + " and start game."); return; }
 
         try {
