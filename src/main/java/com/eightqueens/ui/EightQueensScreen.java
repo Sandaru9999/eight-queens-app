@@ -67,45 +67,27 @@ public class EightQueensScreen {
             }
         });
 
-        // ---------------- SUBMIT BUTTON WITH ALREADY RECOGNIZED CHECK ----------------
-       submitBtn.setOnAction(e -> {
-    String name = playerName.getText().trim();
+        submitBtn.setOnAction(e -> {
+            if (playerName.getText().trim().isEmpty()) {
+                output.setText("Enter player name first!");
+                return;
+            }
+            if (!isFullSolution()) {
+                output.setText("You must place all 8 queens!");
+                return;
+            }
+            if (!isSolutionValid()) {
+                output.setText("Cannot submit — solution is incorrect.");
+                return;
+            }
 
-    if (name.isEmpty()) {
-        output.setText("Enter player name first!");
-        return;
-    }
+            // Save player's solution
+            String solution = SolutionDAO.boardToString(board);
+            int timeTaken = 1234; // TODO: actual timer
+            SolutionDAO.savePlayerAndSolution(playerName.getText(), solution, timeTaken);
 
-    if (!isFullSolution()) {
-        output.setText("You must place all 8 queens!");
-        return;
-    }
-
-    if (!isSolutionValid()) {
-        output.setText("Cannot submit — solution is incorrect.");
-        return;
-    }
-
-    String solution = SolutionDAO.boardToString(board);
-
-    if (SolutionDAO.isSolutionRecognized(solution)) {
-        output.setText("❌ This solution has already been recognized. Try another.");
-        return;
-    }
-
-    int timeTaken = 1234; // optional timer
-    SolutionDAO.savePlayerAndSolution(name, solution, timeTaken);
-
-    // 🟢 CHECK RESET EVENT
-    if (SolutionDAO.getRecognizedSolutionCount() == 0) {
-        output.setText(
-            "✔ Solution saved for " + name +
-            "\n🎉 All 92 solutions completed — system reset!"
-        );
-    } else {
-        output.setText("✔ Correct solution saved for: " + name);
-    }
-});
+            output.setText("✔ Player solution saved for: " + playerName.getText());
+        });
 
         viewAllBtn.setOnAction(e -> {
             StringBuilder sb = new StringBuilder();
@@ -187,58 +169,34 @@ public class EightQueensScreen {
         return root;
     }
 
-    // ---------------- CREATE CHESS BOARD WITH NUMBERS ----------------
-    // Only the createChessBoard() method changes
-private GridPane createChessBoard() {
-    GridPane grid = new GridPane();
-    grid.setAlignment(Pos.CENTER);
-    grid.setHgap(2);
-    grid.setVgap(2);
-    grid.setPadding(new Insets(10));
+    // ---------------- CREATE CHESS BOARD ----------------
+    private GridPane createChessBoard() {
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(2);
+        grid.setVgap(2);
+        grid.setPadding(new Insets(10));
+        for (int i = 0; i < SIZE; i++) board[i] = -1;
 
-    for (int i = 0; i < SIZE; i++) board[i] = -1;
+        Color whiteColor = Color.web("#f0d9b5");
+        Color blackColor = Color.web("#b58863");
 
-    Color whiteColor = Color.web("#f0d9b5");
-    Color blackColor = Color.web("#b58863");
-
-    // Add row and column numbers (0-7)
-    for (int row = 0; row <= SIZE; row++) {
-        for (int col = 0; col <= SIZE; col++) {
-            if (row == 0 && col == 0) continue; // top-left corner empty
-            if (row == 0) {
-                // Column numbers
-                Label colLabel = new Label(String.valueOf(col - 1));
-                colLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-                colLabel.setTextFill(Color.WHITE);
-                grid.add(colLabel, col, row);
-                continue;
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                Button cell = new Button();
+                cell.setPrefSize(60, 60);
+                boolean isWhite = (row + col) % 2 == 0;
+                cell.setStyle("-fx-background-color: " + (isWhite ? "#f0d9b5" : "#b58863") + "; -fx-font-size: 32px; -fx-padding: 0;");
+                final int r = row;
+                final int c = col;
+                cell.setOnAction(e -> handleCellClick(r, c));
+                cells[row][col] = cell;
+                grid.add(cell, col, row);
             }
-            if (col == 0) {
-                // Row numbers
-                Label rowLabel = new Label(String.valueOf(row - 1));
-                rowLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-                rowLabel.setTextFill(Color.WHITE);
-                grid.add(rowLabel, col, row);
-                continue;
-            }
-
-            // Actual chess cell
-            int r = row - 1;
-            int c = col - 1;
-            Button cell = new Button();
-            cell.setPrefSize(60, 60);
-            boolean isWhite = (r + c) % 2 == 0;
-            cell.setStyle("-fx-background-color: " + (isWhite ? "#f0d9b5" : "#b58863") + "; -fx-font-size: 32px; -fx-padding: 0;");
-            cell.setOnAction(e -> handleCellClick(r, c));
-            cells[r][c] = cell;
-            grid.add(cell, col, row);
         }
+        grid.setStyle("-fx-background-radius: 15; -fx-padding: 10; -fx-background-color: rgba(255,255,255,0.2);");
+        return grid;
     }
-
-    grid.setStyle("-fx-background-radius: 15; -fx-padding: 10; -fx-background-color: rgba(255,255,255,0.2);");
-    return grid;
-}
-
 
     private void handleCellClick(int row, int col) {
         if (board[row] == col) {
