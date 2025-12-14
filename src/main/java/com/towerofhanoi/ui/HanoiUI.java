@@ -37,6 +37,10 @@ public class HanoiUI {
     private int movesCount = 0;
     private Label playerLabel;
 
+    private static final char[] PEG_LABELS_3 = {'A','B','C'};
+    private static final char[] PEG_LABELS_4 = {'A','B','C','D'};
+
+
     // User move input
     private TextField movesField;
     private TextArea moveSequenceInput;
@@ -70,10 +74,10 @@ public class HanoiUI {
         playerLabel.setTextFill(Color.LIGHTCYAN);
 
         // DISK INPUT
-        diskInput = new TextField();
-        diskInput.setPromptText("Disks (5-10)");
-        diskInput.setMaxWidth(140);
-        diskInput.setStyle(inputStyle());
+        // diskInput = new TextField();
+        // diskInput.setPromptText("Disks (5-10)");
+        // diskInput.setMaxWidth(140);
+        // diskInput.setStyle(inputStyle());
 
         // PEG CHOICE
         pegChoice = new ChoiceBox<>();
@@ -91,7 +95,7 @@ public class HanoiUI {
         Button backBtn = modernBtn("Back to Menu", "#FF5555", "#CC3333");
         backBtn.setOnAction(e -> MenuScreen.open(stage));
 
-        HBox controls = new HBox(10, playerNameInput, diskInput, pegChoice, startBtn, randomBtn, backBtn);
+        HBox controls = new HBox(10, playerNameInput, pegChoice, startBtn, randomBtn, backBtn);
         controls.setAlignment(Pos.CENTER);
 
         // PEG BOXES
@@ -146,14 +150,17 @@ public class HanoiUI {
     }
 
     // --------------------------- GAME LOGIC ---------------------------
-    private void startGame() {
+     private void startGame() {
         String player = playerNameInput.getText().trim();
         if (player.isEmpty()) { showAlert("Please enter player name."); return; }
         playerLabel.setText("👤 Player: " + player);
 
-        int disks = parseDiskInputOrFallback(5);
-        disks = Math.max(5, Math.min(10, disks));
-        diskInput.setText(String.valueOf(disks));
+        // int disks = parseDiskInputOrFallback(5);
+        // disks = Math.max(5, Math.min(10, disks));
+        // diskInput.setText(String.valueOf(disks));
+        Random rand = new Random();
+        int disks = rand.nextInt(6) + 5; // ALWAYS 5–10
+
 
         setupGame(disks, pegChoice.getValue());
         moveSequenceInput.clear();
@@ -165,7 +172,7 @@ public class HanoiUI {
         Random rand = new Random();
         int disks = rand.nextInt(6) + 5; // 5..10
         int pegs = rand.nextInt(2) + 3; // 3 or 4
-        diskInput.setText(String.valueOf(disks));
+        //diskInput.setText(String.valueOf(disks));
         pegChoice.setValue(pegs);
         if (!playerNameInput.getText().trim().isEmpty()) {
             playerLabel.setText("👤 Player: " + playerNameInput.getText().trim());
@@ -213,10 +220,15 @@ public class HanoiUI {
                     disk.setArcHeight(16);
                     disk.setEffect(new DropShadow(6, Color.rgb(0,0,0,0.35)));
 
-                    disk.setOnMouseClicked(ev -> selectDisk(disk));
+                    //disk.setOnMouseClicked(ev -> selectDisk(disk));
+                    disk.setOnMouseClicked(ev -> {
+    ev.consume();          // 🔥 STOP event bubbling
+    selectDisk(disk);
+});
+
 
                     stack.push(disk);
-                    pegVBox.getChildren().add(disk);
+                    pegVBox.getChildren().add(0,disk);
                 }
             }
 
@@ -246,49 +258,98 @@ public class HanoiUI {
         }
     }
 
+    // private void moveDisk(int targetPeg) {
+    //     if (selectedDisk == null) return;
+
+    //     int sourcePeg = -1;
+    //     for (int i = 0; i < pegStacks.size(); i++) {
+    //         if (!pegStacks.get(i).isEmpty() && pegStacks.get(i).peek() == selectedDisk) {
+    //             sourcePeg = i;
+    //             break;
+    //         }
+    //     }
+    //     if (sourcePeg == -1 || sourcePeg == targetPeg) {
+    //         if (selectedDisk != null) {
+    //             selectedDisk.setStroke(null);
+    //             selectedDisk.setStrokeWidth(0);
+    //             selectedDisk = null;
+    //         }
+    //         return;
+    //     }
+
+    //     Stack<Rectangle> targetStack = pegStacks.get(targetPeg);
+    //     if (!targetStack.isEmpty() && targetStack.peek().getWidth() < selectedDisk.getWidth()) {
+    //         showAlert("Cannot place larger disk on smaller disk!");
+    //         return;
+    //     }
+
+    //     VBox sourceVBox = pegVBoxes.get(sourcePeg);
+    //     VBox targetVBox = pegVBoxes.get(targetPeg);
+
+    //     pegStacks.get(sourcePeg).pop();
+    //     sourceVBox.getChildren().remove(selectedDisk);
+    //     pegStacks.get(targetPeg).push(selectedDisk);
+    //     targetVBox.getChildren().add(selectedDisk);
+
+    //     animateDisk(selectedDisk);
+
+    //     selectedDisk.setStroke(null);
+    //     selectedDisk.setStrokeWidth(0);
+    //     selectedDisk = null;
+    //     movesCount++;
+    //     moveLog.appendText("Moved disk to Peg " + (targetPeg + 1) + "\n");
+    //     checkWin();
+    // }
+
     private void moveDisk(int targetPeg) {
-        if (selectedDisk == null) return;
+    if (selectedDisk == null) return;
 
-        int sourcePeg = -1;
-        for (int i = 0; i < pegStacks.size(); i++) {
-            if (!pegStacks.get(i).isEmpty() && pegStacks.get(i).peek() == selectedDisk) {
-                sourcePeg = i;
-                break;
-            }
+    int sourcePeg = -1;
+    for (int i = 0; i < pegStacks.size(); i++) {
+        if (!pegStacks.get(i).isEmpty() && pegStacks.get(i).peek() == selectedDisk) {
+            sourcePeg = i;
+            break;
         }
-        if (sourcePeg == -1 || sourcePeg == targetPeg) {
-            if (selectedDisk != null) {
-                selectedDisk.setStroke(null);
-                selectedDisk.setStrokeWidth(0);
-                selectedDisk = null;
-            }
-            return;
-        }
+    }
+    if (sourcePeg == -1 || sourcePeg == targetPeg) {
+        deselectDisk();
+        return;
+    }
 
-        Stack<Rectangle> targetStack = pegStacks.get(targetPeg);
-        if (!targetStack.isEmpty() && targetStack.peek().getWidth() < selectedDisk.getWidth()) {
-            showAlert("Cannot place larger disk on smaller disk!");
-            return;
-        }
+    Stack<Rectangle> targetStack = pegStacks.get(targetPeg);
+    // ✅ Check rule: larger cannot go on smaller
+    if (!targetStack.isEmpty() && selectedDisk.getWidth() > targetStack.peek().getWidth()) {
+        showAlert("Cannot place larger disk on smaller disk!");
+        deselectDisk();
+        return;
+    }
 
-        VBox sourceVBox = pegVBoxes.get(sourcePeg);
-        VBox targetVBox = pegVBoxes.get(targetPeg);
+    // Move disk
+    VBox sourceVBox = pegVBoxes.get(sourcePeg);
+    VBox targetVBox = pegVBoxes.get(targetPeg);
 
-        pegStacks.get(sourcePeg).pop();
-        sourceVBox.getChildren().remove(selectedDisk);
-        pegStacks.get(targetPeg).push(selectedDisk);
-        targetVBox.getChildren().add(selectedDisk);
+    pegStacks.get(sourcePeg).pop();
+    sourceVBox.getChildren().remove(selectedDisk);
+    pegStacks.get(targetPeg).push(selectedDisk);
+    targetVBox.getChildren().add(0, selectedDisk); // always at bottom visually
 
-        animateDisk(selectedDisk);
+    animateDisk(selectedDisk);
 
+    deselectDisk();
+    movesCount++;
+    moveLog.appendText("Moved disk to Peg " + (targetPeg + 1) + "\n");
+    checkWin();
+}
+
+private void deselectDisk() {
+    if (selectedDisk != null) {
         selectedDisk.setStroke(null);
         selectedDisk.setStrokeWidth(0);
         selectedDisk = null;
-        movesCount++;
-        moveLog.appendText("Moved disk to Peg " + (targetPeg + 1) + "\n");
-        checkWin();
     }
+}
 
+    
     private void animateDisk(Rectangle disk) {
         TranslateTransition tt = new TranslateTransition(Duration.millis(250), disk);
         tt.setFromY(-20);
@@ -297,12 +358,20 @@ public class HanoiUI {
     }
 
     private void checkWin() {
-        Stack<Rectangle> lastPeg = pegStacks.get(pegStacks.size() - 1);
-        if (lastPeg.size() == numDisks) {
-            String player = playerNameInput.getText().trim();
+        int destIndex = pegChoice.getValue() == 3 ? 2 : 3;
+Stack<Rectangle> destPeg = pegStacks.get(destIndex);
+if (destPeg.size() == numDisks) {
+   String player = playerNameInput.getText().trim();
             if (player.isEmpty()) player = "Player";
             showAlert("🏆 Congratulations, " + player + "!\nSolved in " + movesCount + " moves!");
-        }
+}
+
+        // Stack<Rectangle> lastPeg = pegStacks.get(pegStacks.size() - 1);
+        // if (lastPeg.size() == numDisks) {
+        //     String player = playerNameInput.getText().trim();
+        //     if (player.isEmpty()) player = "Player";
+        //     showAlert("🏆 Congratulations, " + player + "!\nSolved in " + movesCount + " moves!");
+        // }
     }
 
     // ------------------- Submit Moves -------------------
@@ -321,7 +390,13 @@ public class HanoiUI {
         }
 
         List<String> userMoves = parseMoves(movesSeqRaw);
-        List<String> canonical = computeCanonicalSolution(numDisks, pegChoice.getValue());
+        long start = System.nanoTime();
+List<String> canonical = computeCanonicalSolution(numDisks, pegChoice.getValue());
+long end = System.nanoTime();
+long timeMs = (end - start) / 1_000_000;
+
+
+        //List<String> canonical = computeCanonicalSolution(numDisks, pegChoice.getValue());
         boolean isCorrect = canonical.equals(userMoves);
 
         HanoiSolution solution = new HanoiSolution();
@@ -329,10 +404,14 @@ public class HanoiUI {
         solution.setNumDisks(numDisks);
         solution.setNumPegs(pegChoice.getValue());
         solution.setMovesSequence(String.join(",", userMoves));
-        solution.setTimeTakenMs(0);
+       // solution.setTimeTakenMs(0);
+       solution.setTimeTakenMs(timeMs);
         solution.setAlgorithm("UserInput");
 
-        TowerHanoiDAO.savePlayerSolution(solution, isCorrect, null);
+       // TowerHanoiDAO.savePlayerSolution(solution, isCorrect, null);
+        if (isCorrect) {
+    TowerHanoiDAO.savePlayerSolution(solution, true, null);
+}
 
         if (isCorrect) showAlert("✅ Moves submitted successfully and VERIFIED correct!");
         else showAlert("❌ Submitted moves did not match canonical solution. Try again or auto-solve to see answer.");
@@ -348,7 +427,7 @@ public class HanoiUI {
     private void autoSolve4Naive() { runAlgorithmAndAnimate("4-Naive", () -> HanoiClassic4Pegs.solveNaive(numDisks,'A','D','B','C'),4); }
 
     private void runAlgorithmAndAnimate(String name, SolverRunnable solver, int pegCount) {
-        if (numDisks <= 0) { showAlert("Start a game first."); return; }
+        if (numDisks <= 0) { showAlert("Start game first."); return; }
         if (pegChoice.getValue() != pegCount) { showAlert("Change peg choice to " + pegCount + " and start game."); return; }
 
         try {
@@ -358,6 +437,11 @@ public class HanoiUI {
             long elapsedMs = (t1-t0)/1_000_000L;
 
             moveLog.appendText("[" + name + "] solved in " + elapsedMs + "ms\n");
+            if (pegCount == 4) {
+    int classic3 = HanoiClassic3Pegs.solveRecursive(numDisks,'A','D','B').size();
+    moveLog.appendText("3-Peg classic moves: " + classic3 + "\n");
+}
+
             moveSequenceInput.setText(String.join(",", moves));
             movesField.setText(String.valueOf(moves.size()));
 
@@ -376,55 +460,104 @@ public class HanoiUI {
         } catch (Exception ex) { ex.printStackTrace(); showAlert("Failed to run algorithm: " + ex.getMessage()); }
     }
 
+    // private void animateSolutionMoves(List<String> moves) {
+    //     SequentialTransition seqAll = new SequentialTransition();
+
+    //     for (String move : moves) {
+    //         // Parse move text like "Move disk ? from A to C"
+    //         String[] parts = move.split("from|to");
+    //         if (parts.length < 3) continue;
+    //         int from = parts[1].trim().charAt(0) - 'A';
+    //         int to = parts[2].trim().charAt(0) - 'A';
+
+    //         Rectangle disk = pegStacks.get(from).peek();
+    //         if (disk == null) continue;
+
+    //         VBox sourceVBox = pegVBoxes.get(from);
+    //         VBox targetVBox = pegVBoxes.get(to);
+
+    //         pegStacks.get(from).pop();
+    //         sourceVBox.getChildren().remove(disk);
+
+    //         double up = -50;
+    //         double side = (to - from) * 50;
+    //         double down = targetVBox.getChildren().size() * 30;
+
+    //         TranslateTransition moveUp = new TranslateTransition(Duration.millis(200), disk);
+    //         moveUp.setByY(up);
+
+    //         TranslateTransition moveSide = new TranslateTransition(Duration.millis(300), disk);
+    //         moveSide.setByX(side);
+
+    //         TranslateTransition moveDown = new TranslateTransition(Duration.millis(200), disk);
+    //         moveDown.setByY(-up + down);
+
+    //         SequentialTransition diskSeq = new SequentialTransition(moveUp, moveSide, moveDown);
+    //         diskSeq.setOnFinished(e -> {
+    //             pegStacks.get(to).push(disk);
+    //             targetVBox.getChildren().add(disk);
+    //             disk.setTranslateX(0);
+    //             disk.setTranslateY(0);
+    //             movesCount++;
+    //             moveLog.appendText("Moved disk to Peg " + (to+1) + "\n");
+    //             checkWin();
+    //         });
+
+    //         seqAll.getChildren().add(diskSeq);
+    //     }
+
+    //     seqAll.play();
+    // }
+       
     private void animateSolutionMoves(List<String> moves) {
-        SequentialTransition seqAll = new SequentialTransition();
+    SequentialTransition seqAll = new SequentialTransition();
 
-        for (String move : moves) {
-            // Parse move text like "Move disk ? from A to C"
-            String[] parts = move.split("from|to");
-            if (parts.length < 3) continue;
-            int from = parts[1].trim().charAt(0) - 'A';
-            int to = parts[2].trim().charAt(0) - 'A';
+    for (String move : moves) {
+        String[] parts = move.split("from|to");
+        if (parts.length < 3) continue;
+        int from = parts[1].trim().charAt(0) - 'A';
+        int to = parts[2].trim().charAt(0) - 'A';
 
-            Rectangle disk = pegStacks.get(from).peek();
-            if (disk == null) continue;
+        Stack<Rectangle> sourceStack = pegStacks.get(from);
+        Stack<Rectangle> targetStack = pegStacks.get(to);
+        if (sourceStack.isEmpty()) continue;
 
-            VBox sourceVBox = pegVBoxes.get(from);
-            VBox targetVBox = pegVBoxes.get(to);
+        Rectangle disk = sourceStack.pop();  // remove from source
+        VBox sourceVBox = pegVBoxes.get(from);
+        VBox targetVBox = pegVBoxes.get(to);
 
-            pegStacks.get(from).pop();
-            sourceVBox.getChildren().remove(disk);
+        sourceVBox.getChildren().remove(disk);
 
-            double up = -50;
-            double side = (to - from) * 50;
-            double down = targetVBox.getChildren().size() * 30;
+        double up = -50;
+        double side = (to - from) * 50;
+        double down = targetVBox.getChildren().size() * 30;
 
-            TranslateTransition moveUp = new TranslateTransition(Duration.millis(200), disk);
-            moveUp.setByY(up);
+        TranslateTransition moveUp = new TranslateTransition(Duration.millis(200), disk);
+        moveUp.setByY(up);
 
-            TranslateTransition moveSide = new TranslateTransition(Duration.millis(300), disk);
-            moveSide.setByX(side);
+        TranslateTransition moveSide = new TranslateTransition(Duration.millis(300), disk);
+        moveSide.setByX(side);
 
-            TranslateTransition moveDown = new TranslateTransition(Duration.millis(200), disk);
-            moveDown.setByY(-up + down);
+        TranslateTransition moveDown = new TranslateTransition(Duration.millis(200), disk);
+        moveDown.setByY(-up + down);
 
-            SequentialTransition diskSeq = new SequentialTransition(moveUp, moveSide, moveDown);
-            diskSeq.setOnFinished(e -> {
-                pegStacks.get(to).push(disk);
-                targetVBox.getChildren().add(disk);
-                disk.setTranslateX(0);
-                disk.setTranslateY(0);
-                movesCount++;
-                moveLog.appendText("Moved disk to Peg " + (to+1) + "\n");
-                checkWin();
-            });
+        SequentialTransition diskSeq = new SequentialTransition(moveUp, moveSide, moveDown);
+        diskSeq.setOnFinished(e -> {
+            targetStack.push(disk);                // add to target stack
+            targetVBox.getChildren().add(0, disk); // maintain bottom-up order
+            disk.setTranslateX(0);
+            disk.setTranslateY(0);
+            movesCount++;
+            moveLog.appendText("Moved disk to Peg " + (to + 1) + "\n");
+            checkWin();
+        });
 
-            seqAll.getChildren().add(diskSeq);
-        }
-
-        seqAll.play();
+        seqAll.getChildren().add(diskSeq);
     }
 
+    seqAll.play();
+}
+ 
     private interface SolverRunnable { List<String> run(); }
 
     private List<String> computeCanonicalSolution(int n, int pegs) {
@@ -479,6 +612,8 @@ public class HanoiUI {
         btn.setOnMouseExited(e -> btn.setStyle("-fx-background-radius:20;-fx-background-color:linear-gradient(to right,"+c1+","+c2+");"));
         return btn;
     }
+
+
 
     public static void open(Stage stage) { new HanoiUI(stage); }
 }

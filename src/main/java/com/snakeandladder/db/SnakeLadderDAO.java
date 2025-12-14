@@ -1,30 +1,76 @@
 package com.snakeandladder.db;
 
 import com.snakeandladder.models.SnakeLadderSolution;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SnakeLadderDAO {
+    
+    
+    public void saveSolution(SnakeLadderSolution solution) throws SQLException {
+        
+        String sql = "INSERT INTO solutions (player_name, board_size, correct_throws, player_answer, bfs_time_nanos, dp_time_nanos) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)"; 
 
-    public static void savePlayerSolution(SnakeLadderSolution solution) {
-        String sql = "INSERT INTO snake_ladder_results " +
-                     "(player_name, board_size, player_answer, correct_throws, time_taken_ms) " +
-                     "VALUES (?, ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, solution.getPlayerName());
-            stmt.setInt(2, solution.getBoardSize());
-            stmt.setInt(3, solution.getPlayerAnswer());
-            stmt.setInt(4, solution.getCorrectThrows());
-            stmt.setLong(5, solution.getTimeTakenMs());
-            stmt.executeUpdate();
-
+        
+        try (Connection conn = DatabaseConnectionManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            
+            pstmt.setString(1, solution.getPlayerName());
+            pstmt.setInt(2, solution.getBoardSize());
+            pstmt.setInt(3, solution.getCorrectMinThrows());
+            pstmt.setInt(4, solution.getPlayerAnswer());
+            pstmt.setLong(5, solution.getAlgo1TimeNanos());
+            pstmt.setLong(6, solution.getAlgo2TimeNanos());
+            
+            pstmt.executeUpdate();
+            
+            System.out.println("LOG: Solution saved successfully to MySQL database for " + solution.getPlayerName());
+            
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: Failed to save solution to database. Check connection/table structure: " + e.getMessage());
+            throw e; 
         }
     }
+
+    
+    public List<SnakeLadderSolution> getAllSolutions(int limit) throws SQLException {
+        List<SnakeLadderSolution> history = new ArrayList<>();
+        
+        String sql = "SELECT * FROM solutions ORDER BY id DESC LIMIT ?";
+
+        try (Connection conn = DatabaseConnectionManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, limit);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    SnakeLadderSolution entry = new SnakeLadderSolution();
+                    
+                    
+                    entry.setPlayerName(rs.getString("player_name"));
+                    entry.setBoardSize(rs.getInt("board_size"));
+                    entry.setCorrectMinThrows(rs.getInt("correct_throws"));
+                    entry.setPlayerAnswer(rs.getInt("player_answer"));
+                    entry.setAlgo1TimeNanos(rs.getLong("bfs_time_nanos"));
+                    entry.setAlgo2TimeNanos(rs.getLong("dp_time_nanos"));
+                    
+                    
+                    history.add(entry);
+                }
+            }
+            System.out.println("LOG: Loaded " + history.size() + " records from MySQL database.");
+            
+        } catch (SQLException e) {
+            System.err.println("ERROR: Failed to load history from database. Check connection/table structure: " + e.getMessage());
+            
+            throw e; 
+        }
+        return history;
+    }
+    
+    
 }

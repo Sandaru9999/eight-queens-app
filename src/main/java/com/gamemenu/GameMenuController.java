@@ -17,23 +17,27 @@ public class GameMenuController {
     }
 
     public void onEightQueensClick(ActionEvent event) {
+        
         EightQueensScreen game = new EightQueensScreen(stage);
         stage.getScene().setRoot(game.getView());
     }
 
     public void onTowerOfHanoiClick(ActionEvent event) {
+        
         HanoiUI.open(stage);
     }
 
     public void onGame3Click(ActionEvent event) {
-        TSPUI.open(stage); // Traveling Salesman Problem
+        
+        TSPUI.open(stage); 
     }
 
     public void onGame4Click(ActionEvent event) {
-        SnakeLadderUI.open(stage); // Snake & Ladder Game
+        new SnakeLadderUI(stage); 
     }
 
     public void onGame5Click(ActionEvent event) {
-        TrafficUI.open(stage); // Traffic Simulation Game
+        
+        TrafficUI.open(stage); 
     }
 }
