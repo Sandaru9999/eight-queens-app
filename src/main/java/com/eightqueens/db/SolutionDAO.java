@@ -23,7 +23,7 @@ public class SolutionDAO {
         }
     }
 
-    // ---------------- CHECK IF RECOGNIZED ----------------
+    // ---------------- CHECK IF SOLUTION IS RECOGNIZED ----------------
     public static boolean isSolutionRecognized(String solution) {
         String sql = "SELECT recognized FROM solutions WHERE solution=?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -39,7 +39,7 @@ public class SolutionDAO {
         return false;
     }
 
-    // ---------------- MARK AS RECOGNIZED ----------------
+    // ---------------- MARK SOLUTION AS RECOGNIZED ----------------
     public static void markSolutionRecognized(String solution) {
         String sql = "UPDATE solutions SET recognized=TRUE WHERE solution=?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -55,9 +55,7 @@ public class SolutionDAO {
 
     // ---------------- SAVE PLAYER SOLUTION ----------------
     public static void savePlayerSolution(String playerName, String solution) {
-        String sql = "INSERT INTO players (name, solution) " +
-                     "VALUES (?, ?) ON DUPLICATE KEY UPDATE name=name";
-
+        String sql = "INSERT INTO players (name, solution) VALUES (?, ?) ON DUPLICATE KEY UPDATE name=name";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -85,7 +83,7 @@ public class SolutionDAO {
         return 0;
     }
 
-    // ---------------- RESET FLAGS ----------------
+    // ---------------- RESET ALL RECOGNIZED FLAGS ----------------
     public static void resetRecognizedFlags() {
         String sql = "UPDATE solutions SET recognized=FALSE";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -98,7 +96,7 @@ public class SolutionDAO {
         }
     }
 
-    // ---------------- SAVE PLAYER + SOLUTION (AUTO RESET LOGIC) ----------------
+    // ---------------- SAVE PLAYER + SOLUTION WITH AUTO RESET ----------------
     public static void savePlayerAndSolution(String playerName, String solution, int timeTakenMs) {
 
         if (!isSolutionRecognized(solution)) {
@@ -108,7 +106,7 @@ public class SolutionDAO {
 
         savePlayerSolution(playerName, solution);
 
-        // 🔁 AUTO RESET WHEN ALL 92 ARE FOUND
+        // AUTO RESET WHEN ALL 92 SOLUTIONS ARE FOUND
         if (getRecognizedSolutionCount() >= 92) {
             resetRecognizedFlags();
             System.out.println("✔ All 92 solutions identified. Flags reset.");
@@ -125,7 +123,7 @@ public class SolutionDAO {
         return sb.toString();
     }
 
-    // ---------------- GET ALL RECOGNIZED ----------------
+    // ---------------- GET ALL RECOGNIZED SOLUTIONS ----------------
     public static List<String> getAllRecognizedSolutions() {
         List<String> list = new ArrayList<>();
         String sql = "SELECT solution FROM solutions WHERE recognized=TRUE";

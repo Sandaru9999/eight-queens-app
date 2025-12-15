@@ -1,7 +1,6 @@
 package com.eightqueens.logic;
 
 import com.eightqueens.models.Solution;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -53,6 +52,14 @@ public class EightQueensThreaded {
     private static boolean isSafe(int[] board, int row, int col) {
         for (int i = 0; i < row; i++) {
             if (board[i] == col || Math.abs(board[i] - col) == row - i) return false;
+        }
+        return true;
+    }
+
+    // ---------- NEW METHOD TO CHECK PLAYER BOARD ----------
+    public static boolean checkSolution(int[] board) {
+        for (int row = 0; row < N; row++) {
+            if (!isSafe(board, row, board[row])) return false;
         }
         return true;
     }

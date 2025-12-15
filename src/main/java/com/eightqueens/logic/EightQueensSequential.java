@@ -33,4 +33,12 @@ public class EightQueensSequential {
         }
         return true;
     }
+
+    // ---------- NEW METHOD TO CHECK PLAYER BOARD ----------
+    public static boolean checkSolution(int[] board) {
+        for (int row = 0; row < N; row++) {
+            if (!isSafe(board, row, board[row])) return false;
+        }
+        return true;
+    }
 }

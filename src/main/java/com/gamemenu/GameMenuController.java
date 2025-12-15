@@ -4,7 +4,8 @@ import com.eightqueens.ui.EightQueensScreen;
 import com.towerofhanoi.ui.HanoiUI;
 import com.tsp.ui.TSPUI;
 import com.snakeandladder.ui.SnakeLadderUI;
-import com.traffic.ui.TrafficUI;
+import com.traffic.App;
+
 import javafx.event.ActionEvent;
 import javafx.stage.Stage;
 
@@ -30,10 +31,10 @@ public class GameMenuController {
     }
 
     public void onGame4Click(ActionEvent event) {
-        SnakeLadderUI.open(stage); // Snake & Ladder Game
+        new SnakeLadderUI(stage); // Snake & Ladder Game
     }
 
     public void onGame5Click(ActionEvent event) {
-        TrafficUI.open(stage); // Traffic Simulation Game
+        App.open(stage); // Traffic Simulation Game
     }
 }
