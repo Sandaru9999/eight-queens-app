@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DatabaseConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/tower_hanoi?serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost:3306/pdsa?serverTimezone=UTC";
     private static final String USER = "root";
     private static final String PASSWORD = "";
 

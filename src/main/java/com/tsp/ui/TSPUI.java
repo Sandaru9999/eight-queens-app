@@ -36,7 +36,6 @@ public class TSPUI {
 
     private final char[] cities = {'A','B','C','D','E','F','G','H','I','J'};
 
-    // Multiple choice fields
     private ToggleGroup routeChoices;
     private VBox choicesBox;
     private Button submitRouteBtn;
@@ -49,7 +48,6 @@ public class TSPUI {
         root.setPadding(new Insets(20));
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #74ebd5, #ACB6E5);");
 
-        // ===== Title =====
         Label title = new Label("Traveling Salesman Problem");
         title.setFont(Font.font("Arial", 36));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
@@ -197,6 +195,7 @@ public class TSPUI {
         }
 
         TSPSolution solution;
+        long startTime = System.nanoTime();  // start timing
         try {
             switch (algorithm) {
                 case "Brute Force":
@@ -215,6 +214,19 @@ public class TSPUI {
             output.setText("❌ Error: " + ex.getMessage());
             return;
         }
+        long endTime = System.nanoTime();  // end timing
+        long durationMs = (endTime - startTime) / 1_000_000; // convert ns -> ms
+        solution.setTimeTakenMs(durationMs); // store in solution
+
+        // --- Save solution to DB ---
+        solution.setPlayerName(player);
+        solution.setHomeCity(home);
+        solution.setSelectedCities(selected.toString()); // format as needed
+        solution.setAlgorithm(algorithm);
+
+        TSPDAO.savePlayerSolution(solution);
+        output.setText("✅ Solution computed and saved to database!\n" +
+                       "⏱ Time taken: " + durationMs + " ms");
 
         correctRoute = solution.getRoute();
 
@@ -258,15 +270,15 @@ public class TSPUI {
     private void checkSelectedRoute() {
         RadioButton selectedBtn = (RadioButton) routeChoices.getSelectedToggle();
         if (selectedBtn == null) {
-            output.setText("⚠ Select a route first!");
+            output.appendText("⚠ Select a route first!");
             return;
         }
 
         String chosenRoute = selectedBtn.getText();
         if (chosenRoute.equals(correctRoute)) {
-            output.setText("✅ CORRECT! You win!");
+            output.appendText("✅ CORRECT! You win!\n");
         } else {
-            output.setText("❌ INCORRECT! You lost!\nCorrect Route: " + correctRoute);
+            output.appendText("❌ INCORRECT! You lost!\nCorrect Route: " + correctRoute + "\n");
         }
 
         submitRouteBtn.setDisable(true);

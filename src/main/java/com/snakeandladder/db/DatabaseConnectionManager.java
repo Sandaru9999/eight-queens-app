@@ -5,21 +5,24 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnectionManager {
-   private static final String URL = "jdbc:mysql://localhost:3306/pdsa_snake_ladder";
-   private static final String USER = "";
-   private static final String PASSWORD = "";
 
-   public DatabaseConnectionManager() {
-   }
+    private static final String URL = "jdbc:mysql://localhost:3306/pdsa?serverTimezone=UTC";
+    private static final String USER = "root"; // Your DB username
+    private static final String PASSWORD = ""; // Your DB password
 
-   public static Connection getConnection() throws SQLException {
-      try {
-         Class.forName("com.mysql.cj.jdbc.Driver");
-      } catch (ClassNotFoundException var1) {
-         throw new RuntimeException("MySQL JDBC Driver not found. Please ensure the 'mysql-connector-j' dependency is correctly configured in your pom.xml.", var1);
-      }
+    public DatabaseConnectionManager() {
+        // empty constructor
+    }
 
-      return DriverManager.getConnection("jdbc:mysql://localhost:3306/pdsa_snake_ladder", "", "");
-   }
+    public static Connection getConnection() throws SQLException {
+        try {
+            // Load MySQL JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("MySQL JDBC Driver not found. Please ensure the connector is in your classpath.", e);
+        }
+
+        // Return connection to pdsa database
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
 }
-
