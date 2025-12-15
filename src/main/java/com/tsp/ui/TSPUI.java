@@ -39,6 +39,7 @@ public class TSPUI {
     private String correctRoute;
     private int correctDistance;
     private long durationMs;
+    private String algorithmUsed; // <- store algorithm name here
 
     public TSPUI(Stage stage) {
         this.stage = stage;
@@ -163,6 +164,7 @@ public class TSPUI {
     }
 
     private void solveTSP(String algorithm) {
+        this.algorithmUsed = algorithm; // store algorithm name
 
         if (!matrixGenerated) {
             output.setText("⚠ Generate distances first!");
@@ -218,7 +220,7 @@ public class TSPUI {
         correctRoute = solution.getRoute();
         correctDistance = solution.getTotalDistance();
 
-        output.setText("✅ Correct route generated.\n⏱ Time taken: " + durationMs + " ms");
+        output.setText("✅ Correct route generated using " + algorithm + ".\n⏱ Time taken: " + durationMs + " ms");
 
         // Generate multiple-choice options
         List<String> options = generateRouteOptions(correctRoute, selected, home);
@@ -281,7 +283,7 @@ public class TSPUI {
                     chosenRoute,
                     correctDistance,
                     durationMs,
-                    "Player Choice"
+                    algorithmUsed // use correct algorithm here
             );
             solutionToSave.setCorrect(true);
             TSPDAO.savePlayerSolution(solutionToSave);

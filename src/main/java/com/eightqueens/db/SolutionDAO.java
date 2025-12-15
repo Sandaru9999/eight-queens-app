@@ -53,15 +53,36 @@ public class SolutionDAO {
         }
     }
 
-    // ---------------- SAVE PLAYER SOLUTION ----------------
-    public static void savePlayerSolution(String playerName, String solution) {
-        String sql = "INSERT INTO players (name, solution) VALUES (?, ?) ON DUPLICATE KEY UPDATE name=name";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // ---------------- SAVE PLAYER + SOLUTION WITH ALGORITHM AND TIME ----------------
+    public static void savePlayerWithAlgorithm(String playerName, String solution, String algorithm, int timeTakenMs) {
 
-            stmt.setString(1, playerName);
-            stmt.setString(2, solution);
-            stmt.executeUpdate();
+        try {
+            // Save solution if not recognized yet
+            if (!isSolutionRecognized(solution)) {
+                saveSolution(solution, timeTakenMs);
+                markSolutionRecognized(solution);
+            }
+
+            // Save player info
+            String sql = "INSERT INTO players (name, solution, algorithm, timeTakenMs) " +
+                         "VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE algorithm=?, timeTakenMs=?";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setString(1, playerName);
+                stmt.setString(2, solution);
+                stmt.setString(3, algorithm);
+                stmt.setInt(4, timeTakenMs);
+                stmt.setString(5, algorithm);
+                stmt.setInt(6, timeTakenMs);
+                stmt.executeUpdate();
+            }
+
+            // Auto-reset recognized flags if all 92 solutions are found
+            if (getRecognizedSolutionCount() >= 92) {
+                resetRecognizedFlags();
+                System.out.println("✔ All 92 solutions identified. Flags reset.");
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,23 +114,6 @@ public class SolutionDAO {
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    // ---------------- SAVE PLAYER + SOLUTION WITH AUTO RESET ----------------
-    public static void savePlayerAndSolution(String playerName, String solution, int timeTakenMs) {
-
-        if (!isSolutionRecognized(solution)) {
-            saveSolution(solution, timeTakenMs);
-            markSolutionRecognized(solution);
-        }
-
-        savePlayerSolution(playerName, solution);
-
-        // AUTO RESET WHEN ALL 92 SOLUTIONS ARE FOUND
-        if (getRecognizedSolutionCount() >= 92) {
-            resetRecognizedFlags();
-            System.out.println("✔ All 92 solutions identified. Flags reset.");
         }
     }
 

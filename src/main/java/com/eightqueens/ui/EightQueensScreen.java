@@ -98,16 +98,19 @@ public class EightQueensScreen {
                 output.setText("❌ This solution has already been recognized. Try another."); return;
             }
 
+            // Run algorithm to validate & measure time
             long start = System.currentTimeMillis();
             boolean isValid;
             if (algorithm.equals("Sequential")) isValid = EightQueensSequential.checkSolution(board);
             else isValid = EightQueensThreaded.checkSolution(board);
             long end = System.currentTimeMillis();
-            int timeTaken = (int)(end-start);
+            int timeTaken = (int)(end - start);
 
             if (!isValid) { output.setText("✘ The submitted solution is not valid according to " + algorithm); return; }
 
-            SolutionDAO.savePlayerAndSolution(name, solution, timeTaken);
+            // Save player, solution, algorithm, and time
+            SolutionDAO.savePlayerWithAlgorithm(name, solution, algorithm, timeTaken);
+
             output.setText("✔ Correct solution saved for: " + name +
                     "\nAlgorithm used: " + algorithm +
                     "\n⏱ Time taken: " + timeTaken + " ms");
