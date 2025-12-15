@@ -1,11 +1,9 @@
 package com.tsp.logic;
 
 import com.tsp.models.TSPSolution;
+import com.tsp.db.TSPDAO;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TSPNearestNeighbor {
 
@@ -43,16 +41,31 @@ public class TSPNearestNeighbor {
             current = nextCity;
         }
 
-        // Return to home
         totalDist += distMatrix[current - 'A'][home - 'A'];
 
-        // Build route string
         StringBuilder sb = new StringBuilder();
         sb.append(home).append("→");
         for (char c : route) sb.append(c).append("→");
         sb.append(home);
 
         return new TSPSolution("Player", home, listToString(selectedCities), sb.toString(), totalDist, 0, "Nearest Neighbor");
+    }
+
+    public TSPSolution solveAndSave(String playerName, int correctDistance) {
+        long start = System.nanoTime();
+        TSPSolution solution = solve();
+        long end = System.nanoTime();
+        solution.setTimeTakenMs((end - start) / 1_000_000);
+
+        solution.setPlayerName(playerName);
+        solution.setHomeCity(home);
+        solution.setSelectedCities(listToString(selectedCities));
+        solution.setAlgorithm("Nearest Neighbor");
+
+        solution.setCorrect(solution.getTotalDistance() == correctDistance);
+        if (solution.isCorrect()) TSPDAO.savePlayerSolution(solution);
+
+        return solution;
     }
 
     private String listToString(List<Character> list) {

@@ -8,6 +8,12 @@ import java.sql.PreparedStatement;
 public class TSPDAO {
 
     public static void savePlayerSolution(TSPSolution solution) {
+        // ✅ Save only if solution is correct
+        if (!solution.isCorrect()) {
+            System.out.println("Solution is not correct. Not saved to database.");
+            return;
+        }
+
         String sql = "INSERT INTO tsp_results (player_name, home_city, selected_cities, shortest_route, total_distance, time_ms, algorithm) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -21,7 +27,7 @@ public class TSPDAO {
             stmt.setString(7, solution.getAlgorithm());
 
             stmt.executeUpdate();
-            System.out.println("TSP solution saved!");
+            System.out.println("Correct TSP solution saved!");
         } catch (Exception e) {
             e.printStackTrace();
         }

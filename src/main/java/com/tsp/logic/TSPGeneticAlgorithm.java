@@ -1,11 +1,9 @@
 package com.tsp.logic;
 
 import com.tsp.models.TSPSolution;
+import com.tsp.db.TSPDAO;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class TSPGeneticAlgorithm {
 
@@ -24,7 +22,6 @@ public class TSPGeneticAlgorithm {
     }
 
     public TSPSolution solve() {
-        // Initialize population
         List<List<Character>> population = new ArrayList<>();
         for (int i = 0; i < populationSize; i++) {
             List<Character> individual = new ArrayList<>(selectedCities);
@@ -36,13 +33,9 @@ public class TSPGeneticAlgorithm {
         int bestDistance = Integer.MAX_VALUE;
 
         for (int gen = 0; gen < generations; gen++) {
-            // Evaluate fitness
             List<Integer> fitness = new ArrayList<>();
-            for (List<Character> ind : population) {
-                fitness.add(totalDistance(ind));
-            }
+            for (List<Character> ind : population) fitness.add(totalDistance(ind));
 
-            // Track best
             for (int i = 0; i < populationSize; i++) {
                 if (fitness.get(i) < bestDistance) {
                     bestDistance = fitness.get(i);
@@ -50,7 +43,6 @@ public class TSPGeneticAlgorithm {
                 }
             }
 
-            // Selection & crossover
             List<List<Character>> newPopulation = new ArrayList<>();
             for (int i = 0; i < populationSize; i++) {
                 List<Character> parent1 = population.get(rand.nextInt(populationSize));
@@ -58,7 +50,6 @@ public class TSPGeneticAlgorithm {
                 newPopulation.add(crossover(parent1, parent2));
             }
 
-            // Mutation
             for (List<Character> ind : newPopulation) {
                 if (rand.nextDouble() < mutationRate) {
                     int idx1 = rand.nextInt(ind.size());
@@ -70,13 +61,29 @@ public class TSPGeneticAlgorithm {
             population = newPopulation;
         }
 
-        // Build route string
         StringBuilder sb = new StringBuilder();
         sb.append(home).append("→");
         for (char c : bestIndividual) sb.append(c).append("→");
         sb.append(home);
 
         return new TSPSolution("Player", home, listToString(selectedCities), sb.toString(), bestDistance, 0, "Genetic Algorithm");
+    }
+
+    public TSPSolution solveAndSave(String playerName, int correctDistance) {
+        long start = System.nanoTime();
+        TSPSolution solution = solve();
+        long end = System.nanoTime();
+        solution.setTimeTakenMs((end - start) / 1_000_000);
+
+        solution.setPlayerName(playerName);
+        solution.setHomeCity(home);
+        solution.setSelectedCities(listToString(selectedCities));
+        solution.setAlgorithm("Genetic Algorithm");
+
+        solution.setCorrect(solution.getTotalDistance() == correctDistance);
+        if (solution.isCorrect()) TSPDAO.savePlayerSolution(solution);
+
+        return solution;
     }
 
     private int totalDistance(List<Character> route) {

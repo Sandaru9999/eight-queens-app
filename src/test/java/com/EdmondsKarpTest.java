@@ -1,4 +1,4 @@
-package com.TRAFFIC;
+package com;
 
 import com.traffic.algorithms.EdmondsKarp;
 import org.junit.jupiter.api.Test;

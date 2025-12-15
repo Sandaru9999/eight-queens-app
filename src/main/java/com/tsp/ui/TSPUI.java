@@ -15,10 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class TSPUI {
 
@@ -40,6 +37,8 @@ public class TSPUI {
     private VBox choicesBox;
     private Button submitRouteBtn;
     private String correctRoute;
+    private int correctDistance;
+    private long durationMs;
 
     public TSPUI(Stage stage) {
         this.stage = stage;
@@ -195,7 +194,7 @@ public class TSPUI {
         }
 
         TSPSolution solution;
-        long startTime = System.nanoTime();  // start timing
+        long startTime = System.nanoTime();
         try {
             switch (algorithm) {
                 case "Brute Force":
@@ -214,27 +213,17 @@ public class TSPUI {
             output.setText("❌ Error: " + ex.getMessage());
             return;
         }
-        long endTime = System.nanoTime();  // end timing
-        long durationMs = (endTime - startTime) / 1_000_000; // convert ns -> ms
-        solution.setTimeTakenMs(durationMs); // store in solution
-
-        // --- Save solution to DB ---
-        solution.setPlayerName(player);
-        solution.setHomeCity(home);
-        solution.setSelectedCities(selected.toString()); // format as needed
-        solution.setAlgorithm(algorithm);
-
-        TSPDAO.savePlayerSolution(solution);
-        output.setText("✅ Solution computed and saved to database!\n" +
-                       "⏱ Time taken: " + durationMs + " ms");
-
+        long endTime = System.nanoTime();
+        durationMs = (endTime - startTime) / 1_000_000;
         correctRoute = solution.getRoute();
+        correctDistance = solution.getTotalDistance();
 
-        // Generate 4 options (1 correct + 3 random incorrect)
+        output.setText("✅ Correct route generated.\n⏱ Time taken: " + durationMs + " ms");
+
+        // Generate multiple-choice options
         List<String> options = generateRouteOptions(correctRoute, selected, home);
         Collections.shuffle(options);
 
-        // Display options
         choicesBox.getChildren().clear();
         routeChoices.getToggles().clear();
         for (String opt : options) {
@@ -244,7 +233,7 @@ public class TSPUI {
         }
         submitRouteBtn.setDisable(false);
 
-        // Draw correct route on map
+        // Draw route on map
         mapPane.drawRoute(parseRoute(correctRoute));
     }
 
@@ -270,18 +259,43 @@ public class TSPUI {
     private void checkSelectedRoute() {
         RadioButton selectedBtn = (RadioButton) routeChoices.getSelectedToggle();
         if (selectedBtn == null) {
-            output.appendText("⚠ Select a route first!");
+            output.appendText("\n⚠ Select a route first!");
             return;
         }
 
         String chosenRoute = selectedBtn.getText();
-        if (chosenRoute.equals(correctRoute)) {
-            output.appendText("✅ CORRECT! You win!\n");
+        boolean isCorrect = chosenRoute.equals(correctRoute);
+
+        if (isCorrect) {
+            output.appendText("\n✅ CORRECT! You win!");
         } else {
-            output.appendText("❌ INCORRECT! You lost!\nCorrect Route: " + correctRoute + "\n");
+            output.appendText("\n❌ INCORRECT! Correct route: " + correctRoute);
+        }
+
+        // Save **only correct answers**
+        if (isCorrect) {
+            TSPSolution solutionToSave = new TSPSolution(
+                    playerName.getText().trim(),
+                    homeCityChoice.getValue(),
+                    getSelectedCitiesString(),
+                    chosenRoute,
+                    correctDistance,
+                    durationMs,
+                    "Player Choice"
+            );
+            solutionToSave.setCorrect(true);
+            TSPDAO.savePlayerSolution(solutionToSave);
         }
 
         submitRouteBtn.setDisable(true);
+    }
+
+    private String getSelectedCitiesString() {
+        StringBuilder sb = new StringBuilder();
+        for (CheckBox cb : cityChecks) {
+            if (cb.isSelected()) sb.append(cb.getText());
+        }
+        return sb.toString();
     }
 
     private List<Character> parseRoute(String route) {

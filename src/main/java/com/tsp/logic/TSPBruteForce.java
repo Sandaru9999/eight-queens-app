@@ -1,7 +1,11 @@
 package com.tsp.logic;
 
 import com.tsp.models.TSPSolution;
-import java.util.*;
+import com.tsp.db.TSPDAO;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TSPBruteForce {
 
@@ -15,8 +19,8 @@ public class TSPBruteForce {
         this.selectedCities = new ArrayList<>(selectedCities);
     }
 
+    // Core solve method
     public TSPSolution solve() {
-
         if (selectedCities.isEmpty())
             throw new IllegalArgumentException("No cities selected");
 
@@ -51,6 +55,23 @@ public class TSPBruteForce {
                 0,
                 "Brute Force"
         );
+    }
+
+    // Solve and save (only correct solutions)
+    public TSPSolution solveAndSave(String playerName) {
+        long start = System.nanoTime();
+        TSPSolution solution = solve();
+        long end = System.nanoTime();
+        solution.setTimeTakenMs((end - start) / 1_000_000);
+
+        solution.setPlayerName(playerName);
+        solution.setHomeCity(home);
+        solution.setSelectedCities(listToString(selectedCities));
+        solution.setAlgorithm("Brute Force");
+
+        solution.setCorrect(true); // Brute Force always correct
+        TSPDAO.savePlayerSolution(solution);
+        return solution;
     }
 
     private int distance(List<Character> route) {

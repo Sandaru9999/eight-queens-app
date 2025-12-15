@@ -18,4 +18,5 @@ public class TrafficSolution {
 
     public long getTimeTakenMs() { return timeTakenMs; }
     public void setTimeTakenMs(long timeTakenMs) { this.timeTakenMs = timeTakenMs; }
+    
 }

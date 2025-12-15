@@ -8,6 +8,7 @@ public class TSPSolution {
     private int totalDistance;
     private long timeTakenMs;
     private String algorithm;
+    private boolean correct; // new field
 
     public TSPSolution(String playerName, char homeCity, String selectedCities,
                        String route, int totalDistance, long timeTakenMs, String algorithm) {
@@ -18,6 +19,7 @@ public class TSPSolution {
         this.totalDistance = totalDistance;
         this.timeTakenMs = timeTakenMs;
         this.algorithm = algorithm;
+        this.correct = false;
     }
 
     // Getters
@@ -28,8 +30,9 @@ public class TSPSolution {
     public int getTotalDistance() { return totalDistance; }
     public long getTimeTakenMs() { return timeTakenMs; }
     public String getAlgorithm() { return algorithm; }
+    public boolean isCorrect() { return correct; }
 
-    // --- Add setters ---
+    // Setters
     public void setPlayerName(String playerName) { this.playerName = playerName; }
     public void setHomeCity(char homeCity) { this.homeCity = homeCity; }
     public void setSelectedCities(String selectedCities) { this.selectedCities = selectedCities; }
@@ -37,6 +40,7 @@ public class TSPSolution {
     public void setTotalDistance(int totalDistance) { this.totalDistance = totalDistance; }
     public void setTimeTakenMs(long timeTakenMs) { this.timeTakenMs = timeTakenMs; }
     public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
+    public void setCorrect(boolean correct) { this.correct = correct; }
 
     @Override
     public String toString() {
